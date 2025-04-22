@@ -1,36 +1,22 @@
 package com.telegram.telegrambot;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.springframework.stereotype.Component;
 
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-
-
-@SpringBootApplication
+@Component
 public class TelegramBot extends TelegramLongPollingBot {
-    public static void main(String[] args) {
-        SpringApplication.run(TelegramBot.class, args);
-
-        try {
-            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-            botsApi.registerBot(new SimpleBot());
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void onUpdateReceived(Update update) {
-        // This method is correctly overridden from TelegramLongPollingBot
+        // Verifica se il messaggio ha testo
         if (update.hasMessage() && update.getMessage().hasText()) {
             String userMessage = update.getMessage().getText().toLowerCase();
             String replyText;
 
+            // Risposta personalizzata
             if (userMessage.contains("ciao")) {
                 replyText = "Ciao! Come posso aiutarti? 😊";
             } else if (userMessage.contains("come stai")) {
@@ -41,26 +27,26 @@ public class TelegramBot extends TelegramLongPollingBot {
                 replyText = "Hai scritto: " + update.getMessage().getText();
             }
 
+            // Crea il messaggio da inviare
             SendMessage message = new SendMessage();
             message.setChatId(update.getMessage().getChatId().toString());
             message.setText(replyText);
 
             try {
-                execute(message);
+                execute(message); // Invia il messaggio
             } catch (TelegramApiException e) {
-                e.printStackTrace();
+                e.printStackTrace(); // Se c'è un errore, lo stampiamo
             }
         }
     }
 
     @Override
     public String getBotUsername() {
-        return "YourBotUsername"; // Replace with your bot's username
+        return System.getenv("BOT_USERNAME"); // Username del bot
     }
 
     @Override
     public String getBotToken() {
-        return "YourBotToken"; // Replace with your bot's token
+        return System.getenv("BOT_TOKEN"); // Token del bot
     }
 }
-// END public class TelegramBot extends TelegramLongPollingBot
